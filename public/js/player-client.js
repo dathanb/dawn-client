@@ -339,7 +339,7 @@ $(document).ready(function(){
     if ((meta = segment.indexOf('#$#')) != -1) {
       var end = segment.indexOf( "\r\n", meta );
       if (end === -1) {
-	      end = segment.length();
+	      end = segment.length;
       }
       var metaCommand = segment.substr(meta, end - meta);
       var a = metaCommand.split(' upload: ');
