@@ -6,6 +6,26 @@ var isReadOnly = function (cmd) {
   return (cmd == "none" || !cmd);
 };
 
+function doUpload(socket, uploadCommand, uploadData) {
+  var uploadSegments = normalizeLineEndings(uploadData.trim()).split("\r\n");
+  socket.emit('input', uploadCommand, function (state) {
+    setTimeout(function () {
+      uploadDataSegments(socket, uploadSegments);
+    }, 100);
+  });
+}
+
+// Given a websocket and an array of upload data, recursively upload each data line as a separate emission
+function uploadDataSegments(socket, uploadData) {
+  if (uploadData.length > 0) {
+    socket.emit('input', uploadData[0], function (state) {
+      uploadDataSegments(socket, uploadData.slice(1));
+    });
+  } else {
+    socket.emit('input', '.'); // emit the terminator, and don't worry about doing anything after
+  }
+}
+
 $(document).ready(function () {
 
   var data = window.editorData;
@@ -15,7 +35,7 @@ $(document).ready(function () {
 
   var uploadCommand = data.uploadCommand;
   var editorName = data.editorName;
-  var buffer = data.buffer;
+  var buffer = data.buffer.trim();
   var initialValue = buffer;
 
   var cta = $('button.upload');
@@ -40,20 +60,18 @@ $(document).ready(function () {
       if (isReadOnly(uploadCommand)) {
         return;
       }
+
       //alert(editor.val());
       //var socket = window.uploadSocket;
       var socket = window.parentWindow.getSocket();
-      socket.emit('input', uploadCommand, function (state) {
-        var uploadData = '';
-        if (verbEditor != null) {
-          uploadData = verbEditor.getValue();
-        } else {
-          uploadData = basicEditor.val();
-        }
-        socket.emit('input', uploadData + "\n.", function (state) {
-          initialValue = uploadData;
-        });
-      });
+      var uploadData = '';
+      if (verbEditor != null) {
+        uploadData = verbEditor.getValue();
+      } else {
+        uploadData = basicEditor.val();
+      }
+
+      doUpload(socket, uploadCommand, uploadData);
     });
   }
 
