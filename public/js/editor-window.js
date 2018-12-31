@@ -1,7 +1,10 @@
+var normalizeLineEndings = function (str) {
+    return str.replace(/\r\n/g, "\n").replace(/\n/g, "\r\n");
+};
 
-var isReadOnly = function(cmd) {
-  return (cmd == "none" || !cmd);
-}
+var isReadOnly = function (cmd) {
+    return (cmd == "none" || !cmd);
+};
 
 $(document).ready(function(){
   
